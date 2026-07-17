@@ -1,0 +1,239 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "batch10-adf-migration"
+		},
+		"LS_ADLS_Batch10_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_ADLS_Batch10'"
+		},
+		"LS_ADLS_Batch10_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://batch10adlsstorage.dfs.core.windows.net/"
+		},
+		"LS_KeyVault_Batch10_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://batch10-kv-migration.vault.azure.net/"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "LAPTOP-S1T2JNQD\\SQLEXPRESS"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "migration_project"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "alan"
+		},
+		"integrationRuntime1_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/1b66ef6c-baef-4ad1-97c3-eedf9131c9b1/resourcegroups/rg_dev_alanproject/providers/Microsoft.DataFactory/factories/adfdevalanproject/integrationruntimes/LAPTOP-S1T2JNQD-SQLEXPRESS"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_Batch10",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat(dataset().TableName,'_',formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.parquet')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat(dataset().TableName,'/',formatDateTime(utcNow(),'yyyy/MM/dd'))",
+							"type": "Expression"
+						},
+						"fileSystem": "output"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_Batch10')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_LKUP_MAX_VALUE')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_OnPremSQL_Batch10",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableSchema": {
+						"type": "string"
+					},
+					"TableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().TableSchema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_OnPremSQL_Batch10')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Watermark_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_OnPremSQL_Batch10",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "SqlServerTable",
+				"schema": [
+					{
+						"name": "TableSchema",
+						"type": "varchar"
+					},
+					{
+						"name": "TableName",
+						"type": "varchar"
+					},
+					{
+						"name": "WatermarkColumn",
+						"type": "varchar"
+					},
+					{
+						"name": "LastLoadValue",
+						"type": "bigint",
+						"precision": 19
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ADF_Watermark_Table"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_OnPremSQL_Batch10')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_ADLS_Batch10')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_ADLS_Batch10_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('LS_ADLS_Batch10_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "integrationRuntime1",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/integrationRuntime1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_KeyVault_Batch10')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('LS_KeyVault_Batch10_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_OnPremSQL_Batch10')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"server": "[parameters('LS_OnPremSQL_Batch10_properties_typeProperties_server')]",
+					"database": "[parameters('LS_OnPremSQL_Batch10_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_OnPremSQL_Batch10_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "LS_KeyVault_Batch10",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "SqlServerPassword"
+					}
+				},
+				"connectVia": {
+					"referenceName": "integrationRuntime1",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/integrationRuntime1')]",
+				"[concat(variables('factoryId'), '/linkedServices/LS_KeyVault_Batch10')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/integrationRuntime1')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {
+					"linkedInfo": {
+						"resourceId": "[parameters('integrationRuntime1_properties_typeProperties_linkedInfo_resourceId')]",
+						"authorizationType": "Rbac"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

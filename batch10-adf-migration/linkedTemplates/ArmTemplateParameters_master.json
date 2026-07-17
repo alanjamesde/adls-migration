@@ -1,0 +1,36 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "batch10-adf-migration"
+		},
+		"LS_ADLS_Batch10_accountKey": {
+			"value": ""
+		},
+		"LS_ADLS_Batch10_properties_typeProperties_url": {
+			"value": "https://batch10adlsstorage.dfs.core.windows.net/"
+		},
+		"LS_KeyVault_Batch10_properties_typeProperties_baseUrl": {
+			"value": "https://batch10-kv-migration.vault.azure.net/"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_server": {
+			"value": "LAPTOP-S1T2JNQD\\SQLEXPRESS"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_database": {
+			"value": "migration_project"
+		},
+		"LS_OnPremSQL_Batch10_properties_typeProperties_userName": {
+			"value": "alan"
+		},
+		"integrationRuntime1_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/1b66ef6c-baef-4ad1-97c3-eedf9131c9b1/resourcegroups/rg_dev_alanproject/providers/Microsoft.DataFactory/factories/adfdevalanproject/integrationruntimes/LAPTOP-S1T2JNQD-SQLEXPRESS"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
