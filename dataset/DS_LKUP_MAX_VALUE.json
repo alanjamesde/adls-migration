@@ -1,0 +1,24 @@
+{
+	"name": "DS_LKUP_MAX_VALUE",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_OnPremSQL_Batch10",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableSchema": {
+				"type": "string"
+			},
+			"TableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "@dataset().TableSchema",
+			"table": "@dataset().TableName"
+		}
+	}
+}
