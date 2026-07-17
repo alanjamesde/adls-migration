@@ -1,0 +1,27 @@
+{
+	"name": "LS_OnPremSQL_Batch10",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"server": "LAPTOP-S1T2JNQD\\SQLEXPRESS",
+			"database": "migration_project",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "alan",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_KeyVault_Batch10",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "SqlServerPassword"
+			}
+		},
+		"connectVia": {
+			"referenceName": "integrationRuntime1",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
