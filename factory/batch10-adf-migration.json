@@ -1,0 +1,15 @@
+{
+	"name": "batch10-adf-migration",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "636f3801-e51e-493f-a193-2f071db4f00c",
+		"tenantId": "b7ac4410-5e4c-4467-90d2-96198bfd2acf"
+	}
+}
