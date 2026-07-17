@@ -1,0 +1,53 @@
+{
+	"name": "PL_Update_Watermark",
+	"properties": {
+		"activities": [
+			{
+				"name": "SP_UpdateWatermark",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[UpdateWatermark]",
+					"storedProcedureParameters": {
+						"TableName": {
+							"value": "@pipeline().parameters.TableName",
+							"type": "String"
+						},
+						"TableSchema": {
+							"value": "@pipeline().parameters.TableSchema",
+							"type": "String"
+						},
+						"WatermarkColumn": {
+							"value": "@pipeline().parameters.WatermarkColumn",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_OnPremSQL_Batch10",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"TableSchema": {
+				"type": "string"
+			},
+			"TableName": {
+				"type": "string"
+			},
+			"WatermarkColumn": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
