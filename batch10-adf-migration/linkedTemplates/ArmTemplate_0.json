@@ -125,6 +125,76 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/PL_Update_Watermark')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "SP_UpdateWatermark",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[UpdateWatermark]",
+							"storedProcedureParameters": {
+								"TableName": {
+									"value": {
+										"value": "@pipeline().parameters.TableName",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"TableSchema": {
+									"value": {
+										"value": "@pipeline().parameters.TableSchema",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"WatermarkColumn": {
+									"value": {
+										"value": "@pipeline().parameters.WatermarkColumn",
+										"type": "Expression"
+									},
+									"type": "String"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "LS_OnPremSQL_Batch10",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"TableSchema": {
+						"type": "string"
+					},
+					"TableName": {
+						"type": "string"
+					},
+					"WatermarkColumn": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_OnPremSQL_Batch10')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Sink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -236,67 +306,6 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/PL_Update_Watermark')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "SP_UpdateWatermark",
-						"type": "SqlServerStoredProcedure",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"storedProcedureName": "[[dbo].[UpdateWatermark]",
-							"storedProcedureParameters": {
-								"TableName": {
-									"value": "@pipeline().parameters.TableName",
-									"type": "String"
-								},
-								"TableSchema": {
-									"value": "@pipeline().parameters.TableSchema",
-									"type": "String"
-								},
-								"WatermarkColumn": {
-									"value": "@pipeline().parameters.WatermarkColumn",
-									"type": "String"
-								}
-							}
-						},
-						"linkedServiceName": {
-							"referenceName": "LS_OnPremSQL_Batch10",
-							"type": "LinkedServiceReference"
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"TableSchema": {
-						"type": "string"
-					},
-					"TableName": {
-						"type": "string"
-					},
-					"WatermarkColumn": {
-						"type": "string"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_OnPremSQL_Batch10')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/PL_Incremental_Load')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -317,7 +326,10 @@
 						"typeProperties": {
 							"source": {
 								"type": "SqlServerSource",
-								"sqlReaderQuery": "@concat('SELECT MAX(', pipeline().parameters.WatermarkColumn, ') AS MaxValue FROM ', pipeline().parameters.TableSchema, '.', pipeline().parameters.TableName)",
+								"sqlReaderQuery": {
+									"value": "@concat('SELECT MAX(', pipeline().parameters.WatermarkColumn, ') AS MaxValue FROM ', pipeline().parameters.TableSchema, '.', pipeline().parameters.TableName)",
+									"type": "Expression"
+								},
 								"queryTimeout": "02:00:00",
 								"partitionOption": "None"
 							},
@@ -365,7 +377,10 @@
 									"typeProperties": {
 										"source": {
 											"type": "SqlServerSource",
-											"sqlReaderQuery": "@concat('SELECT * FROM ', pipeline().parameters.TableSchema, '.', pipeline().parameters.TableName, if(equals(pipeline().parameters.LastLoadValue, null), '', concat(' WHERE ', pipeline().parameters.WatermarkColumn, ' > ''', pipeline().parameters.LastLoadValue, '''')))",
+											"sqlReaderQuery": {
+												"value": "@concat('SELECT * FROM ', pipeline().parameters.TableSchema, '.', pipeline().parameters.TableName, if(equals(pipeline().parameters.LastLoadValue, null), '', concat(' WHERE ', pipeline().parameters.WatermarkColumn, ' > ''', pipeline().parameters.LastLoadValue, '''')))",
+												"type": "Expression"
+											},
 											"queryTimeout": "02:00:00",
 											"partitionOption": "None"
 										},
@@ -430,9 +445,18 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"TableSchema": "@pipeline().parameters.TableSchema",
-											"TableName": "@pipeline().parameters.TableName",
-											"WatermarkColumn": "@pipeline().parameters.WatermarkColumn"
+											"TableSchema": {
+												"value": "@pipeline().parameters.TableSchema",
+												"type": "Expression"
+											},
+											"TableName": {
+												"value": "@pipeline().parameters.TableName",
+												"type": "Expression"
+											},
+											"WatermarkColumn": {
+												"value": "@pipeline().parameters.WatermarkColumn",
+												"type": "Expression"
+											}
 										}
 									}
 								}
@@ -531,10 +555,22 @@
 										},
 										"waitOnCompletion": true,
 										"parameters": {
-											"TableSchema": "@item().TableSchema",
-											"TableName": "@item().TableName",
-											"WatermarkColumn": "@item().WatermarkColumn",
-											"LastLoadValue": "@item().LastLoadValue"
+											"TableSchema": {
+												"value": "@item().TableSchema",
+												"type": "Expression"
+											},
+											"TableName": {
+												"value": "@item().TableName",
+												"type": "Expression"
+											},
+											"WatermarkColumn": {
+												"value": "@item().WatermarkColumn",
+												"type": "Expression"
+											},
+											"LastLoadValue": {
+												"value": "@item().LastLoadValue",
+												"type": "Expression"
+											}
 										}
 									}
 								}
