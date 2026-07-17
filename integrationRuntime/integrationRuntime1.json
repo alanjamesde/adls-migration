@@ -1,0 +1,12 @@
+{
+	"name": "integrationRuntime1",
+	"properties": {
+		"type": "SelfHosted",
+		"typeProperties": {
+			"linkedInfo": {
+				"resourceId": "/subscriptions/1b66ef6c-baef-4ad1-97c3-eedf9131c9b1/resourcegroups/rg_dev_alanproject/providers/Microsoft.DataFactory/factories/adfdevalanproject/integrationruntimes/LAPTOP-S1T2JNQD-SQLEXPRESS",
+				"authorizationType": "Rbac"
+			}
+		}
+	}
+}
