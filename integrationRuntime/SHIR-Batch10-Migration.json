@@ -1,0 +1,6 @@
+{
+	"name": "SHIR-Batch10-Migration",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
